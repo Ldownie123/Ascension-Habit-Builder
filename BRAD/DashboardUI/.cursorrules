@@ -1,0 +1,74 @@
+# Ascension Dual-Sync Protocol
+
+These rules are permanent and apply to all future interactions in this project.
+
+---
+
+## 1. DUAL-FILE GENERATION
+
+Whenever the user asks for a UI change, new feature, or component, **always** provide the code in two blocks:
+
+### BLOCK 1 (SwiftUI)
+- A **complete, self-contained** `.swift` file.
+- Use **modern iOS 17 syntax** (e.g. `.foregroundStyle`, `.containerRelativeFrame`, etc.).
+- **Include a `PreviewProvider`** at the bottom for legacy Xcode support.
+
+### BLOCK 2 (HTML Preview)
+- A **single-file HTML/CSS document** that mimics the iOS UI precisely for Windows previewing.
+- **Standard: iPhone 16 device simulation** — wrap the UI in an iPhone 16 frame:
+  - Outer frame: dark metallic chassis (`#1c1c1e`–`#2c2c2e`), ~55px corner radius, subtle inset shadow
+  - Screen: **393×852px** (iPhone 16 logical size), 47px corner radius
+  - **Dynamic Island**: black pill cutout at top center (126×37px, 20px border-radius)
+  - Centered on a dark gradient background
+- Must visually match the SwiftUI layout and styling as closely as possible.
+
+---
+
+## 2. IPHONE 16 HTML PREVIEW FRAME (STANDARD)
+
+All HTML preview files must simulate the UI inside an **iPhone 16** device frame:
+
+| Element | Spec |
+|---------|------|
+| **Frame** | 417×876px outer (393×852 screen + 12px bezel), dark metallic, 55px corner radius |
+| **Screen** | 393×852px (iPhone 16 logical size), 47px corner radius |
+| **Dynamic Island** | Black pill, 126×37px, top center, 20px border-radius |
+| **Fit on screen** | Scale frame to fit viewport (min of 1, 100vw/417, 100vh/876), centered |
+| **Scroll** | Content in scroll-area with `flex: 1; min-height: 0; overflow-y: auto` so inner content scrolls |
+| **Background** | Dark gradient (e.g. `#1a1a1a` → `#2d2d2d`) |
+
+---
+
+## 3. DESIGN TOKENS & STYLE
+
+Use these values consistently in both Swift and HTML outputs:
+
+| Token      | Value     | Usage                    |
+|-----------|-----------|--------------------------|
+| **BG**    | `#000000` | Black (main background)  |
+| **Primary**   | `#2EEDC7` | Teal (primary accent)    |
+| **Secondary** | `#1DA1F2` | Blue (secondary accent)  |
+| **Card BG**   | `#1C1C1E` | Card/panel background   |
+
+- **Layout (HTML):** Use **Flexbox** to match SwiftUI:
+  - `VStack` → column flex (`flex-direction: column`)
+  - `HStack` → row flex (`flex-direction: row`)
+
+---
+
+## 4. NAMING CONVENTION
+
+- **Swift files:** `[ComponentName].swift`
+- **HTML files:** `[ComponentName]_PREVIEW.html`
+
+Example: `SettingsView.swift` and `SettingsView_PREVIEW.html`.
+
+---
+
+## 5. AUTOMATIC REMINDERS
+
+If the user forgets to ask for the HTML version, **you must provide it anyway** as part of this project's core protocol. The dual-file output (SwiftUI + HTML Preview) is required for every UI change, feature, or component request.
+
+---
+
+*Protocol: Ascension Dual-Sync — Swift + HTML in lockstep. HTML previews use iPhone 16 device simulation by default.*

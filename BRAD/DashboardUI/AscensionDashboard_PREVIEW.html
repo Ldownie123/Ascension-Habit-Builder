@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ascension Dashboard — iPhone 16 Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+    .iphone-frame {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 417px; height: 876px;
+      padding: 12px;
+      background: linear-gradient(180deg, #2c2c2e 0%, #1c1c1e 30%, #0d0d0f 100%);
+      border-radius: 55px;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08), inset 0 2px 4px rgba(0,0,0,0.4), 0 0 0 3px #0a0a0a, 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 80px rgba(0,0,0,0.3);
+      transform-origin: center center;
+    }
+    .phone {
+      width: 100%; height: 100%;
+      background: #F5E6CE;
+      border-radius: 47px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .dynamic-island {
+      position: absolute;
+      top: 12px; left: 50%;
+      transform: translateX(-50%);
+      width: 126px; height: 37px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 20;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.5);
+    }
+    .scroll-area {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    .header { padding: 56px 0 8px; text-align: center; }
+    .header h1 { font-size: 12px; font-weight: 700; letter-spacing: 0.3em; color: rgba(17,17,17,0.8); }
+
+    .date-nav { display: flex; gap: 16px; padding: 16px 20px; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+    .date-nav::-webkit-scrollbar { display: none; }
+    .day {
+      flex-shrink: 0; width: 48px; height: 56px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border-radius: 12px; background: transparent; cursor: pointer;
+    }
+    .day.today { background: #111; }
+    .day .label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; }
+    .day.today .label { color: rgba(255,255,255,0.8); }
+    .day.past .label { color: rgba(17,17,17,0.6); }
+    .day.future .label { color: rgba(17,17,17,0.3); }
+    .day .num { font-size: 18px; font-weight: 600; margin-top: 2px; }
+    .day.today .num { color: #fff; }
+    .day.past .num { color: rgba(17,17,17,0.8); }
+    .day.future .num { color: rgba(17,17,17,0.3); }
+
+    .streak-wrap { display: flex; flex-direction: column; align-items: center; padding: 32px 0; }
+    .ring-container { width: 260px; height: 260px; position: relative; display: flex; align-items: center; justify-content: center; }
+    .ring-svg { position: absolute; width: 260px; height: 260px; transform: rotate(-90deg); }
+    .ring-bg { fill: none; stroke: rgba(206,206,206,0.5); stroke-width: 14; stroke-linecap: round; stroke-dasharray: 88.7 4 88.7 4 88.7 4 88.7 4 88.7 4 88.7 4 88.7 4; }
+    .ring-fill { fill: none; stroke: #35C2FF; stroke-width: 14; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(53,194,255,0.5)); }
+    .ring-center { position: relative; text-align: center; }
+    .ring-center .streak-num { font-size: 60px; font-weight: 900; letter-spacing: -0.02em; color: #111; }
+    .ring-center .streak-num.failed { color: #E24D4D; }
+    .ring-center .streak-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: rgba(17,17,17,0.6); margin-top: 4px; }
+    .ring-center .week-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; color: rgba(17,17,17,0.45); margin-top: 2px; }
+    .motivational { font-size: 14px; font-weight: 500; font-style: italic; color: rgba(17,17,17,0.5); margin-top: 32px; }
+
+    .task-card { margin: 0 20px 32px; padding: 24px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 4px 20px -2px rgba(17,17,17,0.05); }
+    .task-card .label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: rgba(17,17,17,0.4); margin-bottom: 16px; }
+    .task-card .task-row { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .task-card .icon-wrap { width: 40px; height: 40px; border-radius: 50%; background: #F5E6CE; display: flex; align-items: center; justify-content: center; color: #111; }
+    .task-card .icon-wrap svg { width: 20px; height: 20px; }
+    .task-card .task-name { font-size: 20px; font-weight: 600; color: #111; }
+    .task-card .btns { display: flex; gap: 12px; }
+    .task-card button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .task-card .btn-complete { background: #35C2FF; color: #fff; }
+    .task-card .btn-skip { background: #E24D4D; color: #fff; }
+    .task-card .day-complete { padding: 12px 0; color: #35C2FF; font-size: 14px; font-weight: 600; }
+
+    .progress-section { padding: 0 20px 40px; }
+    .progress-section h4 { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: rgba(17,17,17,0.4); margin-bottom: 16px; padding-left: 4px; }
+    .progress-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; margin-bottom: 12px; }
+    .progress-item.denied { opacity: 0.7; }
+    .progress-item.denied .left span { color: #E24D4D; }
+    .progress-item .left { display: flex; align-items: center; gap: 12px; }
+    .progress-item .left svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .progress-item .left span { font-size: 14px; font-weight: 500; color: #111; }
+    .progress-item.incomplete .left span { color: rgba(17,17,17,0.6); }
+    .progress-item .time { font-size: 12px; font-weight: 500; color: rgba(17,17,17,0.4); }
+
+    .bottom-nav { flex-shrink: 0; width: 100%; background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); border-top: 1px solid rgba(206,206,206,0.3); padding: 16px 24px 24px; padding-bottom: max(24px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; flex: 1; }
+    .nav-item svg { width: 24px; height: 24px; }
+    .nav-item span { font-size: 10px; font-weight: 500; }
+    .nav-item.active svg { color: #35C2FF; }
+    .nav-item.active span { font-weight: 700; color: #111; }
+    .nav-item:not(.active) svg { color: #CECECE; }
+    .nav-item:not(.active) span { color: #CECECE; }
+
+    .screen { display: none; flex-direction: column; flex: 1; min-height: 0; }
+    .screen.active { display: flex; }
+
+    .screen-title { font-size: 20px; font-weight: 700; color: #111; padding: 0 20px 4px; }
+    .screen-subtitle { font-size: 13px; color: rgba(17,17,17,0.5); padding: 0 20px 16px; }
+    .task-list-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(255,255,255,0.8); border-radius: 12px; margin: 0 20px 12px; border: 1px solid rgba(255,255,255,0.4); }
+    .task-list-item.disabled { opacity: 0.5; }
+    .task-list-item .task-title { font-size: 16px; font-weight: 600; color: #111; }
+    .task-list-item .task-category { font-size: 12px; color: rgba(17,17,17,0.5); margin-top: 2px; }
+    .task-list-item .task-actions { display: flex; gap: 8px; align-items: center; }
+    .toggle-switch { width: 44px; height: 24px; border-radius: 12px; background: #CECECE; cursor: pointer; position: relative; transition: background 0.2s; }
+    .toggle-switch.on { background: #35C2FF; }
+    .toggle-switch::after { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: transform 0.2s; }
+    .toggle-switch.on::after { transform: translateX(20px); }
+    .add-task-btn { margin: 20px; padding: 16px; background: #35C2FF; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    #stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px 20px; }
+    .stat-card { padding: 20px; background: rgba(255,255,255,0.8); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); }
+    .stat-card .stat-value { font-size: 32px; font-weight: 800; color: #111; }
+    .stat-card .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: rgba(17,17,17,0.5); margin-top: 4px; }
+    .weekly-activity { margin: 20px; padding: 20px; background: rgba(255,255,255,0.8); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); }
+    .weekly-activity h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: rgba(17,17,17,0.5); margin-bottom: 16px; }
+    .week-days { display: flex; gap: 8px; justify-content: space-between; }
+    .week-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .week-day .bar { width: 100%; height: 60px; border-radius: 8px; background: rgba(206,206,206,0.3); }
+    .week-day .bar.preserved { background: #35C2FF; }
+    .week-day .bar.broken { background: #E24D4D; }
+    .week-day .label { font-size: 10px; font-weight: 600; color: rgba(17,17,17,0.5); }
+    .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(255,255,255,0.8); border-radius: 12px; margin: 0 20px 12px; border: 1px solid rgba(255,255,255,0.4); }
+    .settings-item .label { font-size: 15px; font-weight: 500; color: #111; }
+    .settings-item .value { font-size: 13px; color: rgba(17,17,17,0.5); }
+    .reset-demo-btn { margin: 20px; padding: 16px; background: #E24D4D; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .back-btn { display: inline-flex; align-items: center; padding: 8px 0; font-size: 14px; font-weight: 500; color: #35C2FF; background: none; border: none; cursor: pointer; font-family: inherit; margin: 0 20px 16px; }
+    .day-history-header { margin: 0 20px 20px; }
+    .day-history-header h2 { font-size: 20px; font-weight: 700; color: #111; }
+    .day-history-header .streak-status { font-size: 13px; margin-top: 4px; }
+    .day-history-header .streak-status.preserved { color: #35C2FF; }
+    .day-history-header .streak-status.broken { color: #E24D4D; }
+    .history-task { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(255,255,255,0.8); border-radius: 12px; margin: 0 20px 12px; border: 1px solid rgba(255,255,255,0.4); }
+    .history-task .status-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; padding: 4px 8px; border-radius: 6px; }
+    .history-task .status-badge.completed { background: rgba(53,194,255,0.2); color: #35C2FF; }
+    .history-task .status-badge.denied { background: rgba(226,77,77,0.2); color: #E24D4D; }
+    .history-task .status-badge.pending { background: rgba(206,206,206,0.3); color: rgba(17,17,17,0.6); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #F5E6CE; border-radius: 16px; padding: 24px; max-width: 340px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal h3 { font-size: 18px; font-weight: 700; color: #111; margin-bottom: 16px; }
+    .modal input { width: 100%; padding: 12px 16px; border: 1px solid #CECECE; border-radius: 12px; font-size: 16px; margin-bottom: 12px; font-family: inherit; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-actions button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-primary { background: #35C2FF; color: #fff; }
+    .btn-secondary { background: #CECECE; color: #111; }
+  </style>
+</head>
+<body>
+  <div class="viewport">
+  <div class="iphone-frame" id="iphone-frame">
+  <div class="phone">
+    <div class="dynamic-island" aria-hidden="true"></div>
+
+    <div class="screen active" id="screen-dashboard">
+      <div class="scroll-area">
+        <header class="header"><h1>ASCENSION</h1></header>
+        <div class="date-nav" id="date-nav"></div>
+        <div class="streak-wrap" id="streak-wrap"></div>
+        <div class="task-card" id="active-task-card"></div>
+        <section class="progress-section">
+          <h4>TODAY'S PROGRESS</h4>
+          <div id="today-progress"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-library">
+      <div class="scroll-area">
+        <header class="header"><h1>ASCENSION</h1></header>
+        <div class="screen-title">Task Library</div>
+        <div class="screen-subtitle">Manage your habits</div>
+        <div id="task-library-list"></div>
+        <button class="add-task-btn" id="add-task-btn">+ Add Task</button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-stats">
+      <div class="scroll-area">
+        <header class="header"><h1>ASCENSION</h1></header>
+        <div class="screen-title">Progress</div>
+        <div class="screen-subtitle">Your accountability stats</div>
+        <div id="stats-grid"></div>
+        <div class="weekly-activity" id="weekly-activity"></div>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-settings">
+      <div class="scroll-area">
+        <header class="header"><h1>ASCENSION</h1></header>
+        <div class="screen-title">Settings</div>
+        <div class="screen-subtitle">Preferences & about</div>
+        <div id="settings-list"></div>
+        <button class="reset-demo-btn" id="reset-demo-btn">Reset Demo Data</button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-day-history">
+      <div class="scroll-area">
+        <header class="header"><h1>ASCENSION</h1></header>
+        <button class="back-btn" id="day-history-back">← Back</button>
+        <div class="day-history-header" id="day-history-header"></div>
+        <div id="day-history-tasks"></div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav" id="bottom-nav"></nav>
+  </div>
+  </div>
+  </div>
+
+  <div class="modal-overlay" id="task-modal">
+    <div class="modal">
+      <h3 id="task-modal-title">Add Task</h3>
+      <input type="text" id="task-modal-title-input" placeholder="Task title">
+      <input type="text" id="task-modal-category-input" placeholder="Category (e.g. Health, Mind)">
+      <div class="modal-actions">
+        <button class="btn-secondary" id="task-modal-cancel">Cancel</button>
+        <button class="btn-primary" id="task-modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var TaskStatus = { PENDING: 'pending', COMPLETED: 'completed', DENIED: 'denied' };
+    var DASH_PATTERNS = ['0 649','88.7 4 0 556','88.7 4 88.7 4 0 463','88.7 4 88.7 4 88.7 4 0 370','88.7 4 88.7 4 88.7 4 88.7 4 0 278','88.7 4 88.7 4 88.7 4 88.7 4 88.7 4 0 185','88.7 4 88.7 4 88.7 4 88.7 4 88.7 4 88.7 4 0 92','88.7 4 88.7 4 88.7 4 88.7 4 88.7 4 88.7 4 88.7 4'];
+    var DAY_NAMES = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    var STORAGE_KEY = 'ascension_mvp_state';
+
+    function dateKey(d) { var x = d instanceof Date ? d : new Date(d); return x.toISOString().slice(0,10); }
+    function getDayName(date) { var d = typeof date === 'string' ? new Date(date+'T12:00:00') : date; return DAY_NAMES[d.getDay()]; }
+    function uuid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); }
+    function createTask(o) { o=o||{}; return { id: o.id||uuid(), title: o.title||'New Task', category: o.category||'General', enabled: o.enabled!==false }; }
+    function createTaskRecord(o) { o=o||{}; return { id: o.id||uuid(), taskId: o.taskId||'', taskTitle: o.taskTitle||'', status: o.status||TaskStatus.PENDING, timestamp: o.timestamp||null, dateKey: o.dateKey||null }; }
+
+    function getDemoTasks() {
+      return [
+        createTask({id:'t1',title:'Drink Water',category:'Health',enabled:true}),
+        createTask({id:'t2',title:'Morning Stretch',category:'Health',enabled:true}),
+        createTask({id:'t3',title:'Read for 15 Minutes',category:'Mind',enabled:true}),
+        createTask({id:'t4',title:'Evening Journal',category:'Mind',enabled:true}),
+        createTask({id:'t5',title:'Complete a 10 Minute Walk',category:'Health',enabled:true}),
+        createTask({id:'t6',title:'No Social Media Before Noon',category:'Discipline',enabled:true}),
+        createTask({id:'t7',title:'Meditate 5 Minutes',category:'Mind',enabled:false})
+      ];
+    }
+
+    function getDemoTaskRecords() {
+      var today = new Date(), records = [];
+      var d7 = new Date(today); d7.setDate(d7.getDate()-7);
+      records.push(createTaskRecord({taskId:'t1',taskTitle:'Drink Water',status:TaskStatus.COMPLETED,timestamp:d7.toISOString()}));
+      records.push(createTaskRecord({taskId:'t2',taskTitle:'Morning Stretch',status:TaskStatus.COMPLETED,timestamp:d7.toISOString()}));
+      var d6 = new Date(today); d6.setDate(d6.getDate()-6);
+      records.push(createTaskRecord({taskId:'t1',taskTitle:'Drink Water',status:TaskStatus.COMPLETED,timestamp:d6.toISOString()}));
+      var d5 = new Date(today); d5.setDate(d5.getDate()-5);
+      records.push(createTaskRecord({taskId:'t5',taskTitle:'Complete a 10 Minute Walk',status:TaskStatus.DENIED,timestamp:d5.toISOString()}));
+      var d4 = new Date(today); d4.setDate(d4.getDate()-4);
+      records.push(createTaskRecord({taskId:'t1',taskTitle:'Drink Water',status:TaskStatus.COMPLETED,timestamp:d4.toISOString()}));
+      var d3 = new Date(today); d3.setDate(d3.getDate()-3);
+      records.push(createTaskRecord({taskId:'t1',taskTitle:'Drink Water',status:TaskStatus.COMPLETED,timestamp:d3.toISOString()}));
+      records.push(createTaskRecord({taskId:'t2',taskTitle:'Morning Stretch',status:TaskStatus.COMPLETED,timestamp:d3.toISOString()}));
+      var d2 = new Date(today); d2.setDate(d2.getDate()-2);
+      records.push(createTaskRecord({taskId:'t1',taskTitle:'Drink Water',status:TaskStatus.COMPLETED,timestamp:d2.toISOString()}));
+      records.push(createTaskRecord({taskId:'t2',taskTitle:'Morning Stretch',status:TaskStatus.COMPLETED,timestamp:d2.toISOString()}));
+      records.push(createTaskRecord({taskId:'t3',taskTitle:'Read for 15 Minutes',status:TaskStatus.COMPLETED,timestamp:d2.toISOString()}));
+      var d1 = new Date(today); d1.setDate(d1.getDate()-1);
+      records.push(createTaskRecord({taskId:'t1',taskTitle:'Drink Water',status:TaskStatus.COMPLETED,timestamp:d1.toISOString()}));
+      records.push(createTaskRecord({taskId:'t5',taskTitle:'Complete a 10 Minute Walk',status:TaskStatus.COMPLETED,timestamp:d1.toISOString()}));
+      var t = new Date(), tk = dateKey(t);
+      records.push(createTaskRecord({taskId:'t1',taskTitle:'Drink Water',status:TaskStatus.COMPLETED,timestamp:t.toISOString()}));
+      records.push(createTaskRecord({taskId:'t2',taskTitle:'Morning Stretch',status:TaskStatus.COMPLETED,timestamp:t.toISOString()}));
+      records.push(createTaskRecord({taskId:'t3',taskTitle:'Read for 15 Minutes',status:TaskStatus.COMPLETED,timestamp:t.toISOString()}));
+      records.push(createTaskRecord({taskId:'t5',taskTitle:'Complete a 10 Minute Walk',status:TaskStatus.PENDING,timestamp:null,dateKey:tk}));
+      return records;
+    }
+
+    function groupRecordsByDay(records) {
+      var by = {};
+      for (var i = 0; i < records.length; i++) {
+        var r = records[i], k = r.dateKey || (r.timestamp ? dateKey(r.timestamp) : null);
+        if (!k) continue;
+        if (!by[k]) by[k] = [];
+        by[k].push(r);
+      }
+      return by;
+    }
+
+    function evaluateDay(recs) {
+      var denied = false, completed = false;
+      for (var i = 0; i < (recs||[]).length; i++) {
+        if (recs[i].status === TaskStatus.DENIED) denied = true;
+        if (recs[i].status === TaskStatus.COMPLETED) completed = true;
+      }
+      return { streakBroken: denied, streakPreserved: !denied && completed };
+    }
+
+    function computeStreakState(records, todayKey) {
+      var by = groupRecordsByDay(records), days = Object.keys(by).sort();
+      if (days.indexOf(todayKey) < 0) days.push(todayKey);
+      days.sort();
+      var current = 0, longest = 0, preservedToday = false, brokenToday = false;
+      var idx = days.indexOf(todayKey);
+      if (idx >= 0) {
+        var sum = evaluateDay(by[days[idx]] || []);
+        if (sum.streakBroken) brokenToday = (days[idx] === todayKey);
+        else if (sum.streakPreserved) {
+          current = 1; preservedToday = (days[idx] === todayKey);
+          for (var j = idx - 1; j >= 0; j--) {
+            var ps = evaluateDay(by[days[j]] || []);
+            if (ps.streakBroken) break;
+            if (ps.streakPreserved) current++;
+            else break;
+          }
+        }
+      }
+      var run = 0;
+      for (var k = 0; k < days.length; k++) {
+        var s = evaluateDay(by[days[k]] || []);
+        if (s.streakBroken) { longest = Math.max(longest, run); run = 0; }
+        else if (s.streakPreserved) { run++; longest = Math.max(longest, run); }
+      }
+      return { currentStreak: current, longestStreak: longest, streakPreservedToday: preservedToday, streakBrokenToday: brokenToday, isFailed: brokenToday };
+    }
+
+    function getInitialState() {
+      return { tasks: getDemoTasks(), taskRecords: getDemoTaskRecords(), daySummaries: {}, selectedDateKey: dateKey(new Date()), activeTab: 0, settings: { theme: 'light', wordingMode: 'calm', reminderStyle: 'gentle' } };
+    }
+
+    function loadState() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) { var p = JSON.parse(raw); return Object.assign({}, getInitialState(), p); }
+      } catch(e) {}
+      return getInitialState();
+    }
+
+    function saveState(s) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks: s.tasks, taskRecords: s.taskRecords, daySummaries: s.daySummaries, settings: s.settings })); } catch(e) {}
+    }
+
+    function resetDemoData() { var f = getInitialState(); saveState(f); return f; }
+
+    function getRecordsForDay(s, key) {
+      return s.taskRecords.filter(function(r) {
+        var k = r.dateKey || (r.timestamp ? dateKey(r.timestamp) : null);
+        return k === key;
+      });
+    }
+
+    function getActiveTaskForToday(s) {
+      var recs = getRecordsForDay(s, dateKey(new Date()));
+      for (var i = 0; i < recs.length; i++) if (recs[i].status === TaskStatus.PENDING) return recs[i];
+      return null;
+    }
+
+    function getTodayProgress(s) {
+      var recs = getRecordsForDay(s, dateKey(new Date()));
+      return recs.filter(function(r) { return r.status !== TaskStatus.PENDING; }).sort(function(a,b) { return (a.timestamp||'').localeCompare(b.timestamp||''); });
+    }
+
+    function completeTask(s, id) {
+      var idx = -1;
+      for (var i = 0; i < s.taskRecords.length; i++) if (s.taskRecords[i].id === id) { idx = i; break; }
+      if (idx < 0) return s;
+      var tr = s.taskRecords.slice();
+      tr[idx] = Object.assign({}, tr[idx], { status: TaskStatus.COMPLETED, timestamp: new Date().toISOString() });
+      return Object.assign({}, s, { taskRecords: tr });
+    }
+
+    function denyTask(s, id) {
+      var idx = -1;
+      for (var i = 0; i < s.taskRecords.length; i++) if (s.taskRecords[i].id === id) { idx = i; break; }
+      if (idx < 0) return s;
+      var tr = s.taskRecords.slice();
+      tr[idx] = Object.assign({}, tr[idx], { status: TaskStatus.DENIED, timestamp: new Date().toISOString() });
+      return Object.assign({}, s, { taskRecords: tr });
+    }
+
+    function activateTaskForToday(s, task) {
+      var existing = getRecordsForDay(s, dateKey(new Date()));
+      for (var i = 0; i < existing.length; i++) if (existing[i].taskId === task.id) return s;
+      var rec = createTaskRecord({ taskId: task.id, taskTitle: task.title, status: TaskStatus.PENDING, dateKey: dateKey(new Date()) });
+      return Object.assign({}, s, { taskRecords: s.taskRecords.concat([rec]) });
+    }
+
+    function formatTime(iso) {
+      if (!iso) return '';
+      var d = new Date(iso), h = d.getHours(), m = d.getMinutes();
+      var am = h >= 12 ? 'PM' : 'AM';
+      return (h % 12 || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + am;
+    }
+
+    var state = loadState();
+
+    function setState(next) { state = next; saveState(state); render(); }
+
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(function(el) { el.classList.remove('active'); });
+      var el = document.getElementById('screen-' + name);
+      if (el) el.classList.add('active');
+      var map = { dashboard: 0, library: 1, stats: 2, settings: 3 };
+      if (map[name] !== undefined) state = Object.assign({}, state, { activeTab: map[name] });
+    }
+
+    function renderDateNav() {
+      var todayKey = dateKey(new Date()), html = '', days = [];
+      for (var i = -4; i <= 4; i++) {
+        var d = new Date(); d.setDate(d.getDate() + i);
+        var k = dateKey(d), isToday = k === todayKey, isPast = k < todayKey;
+        days.push({ key: k, label: getDayName(d), num: d.getDate(), isToday: isToday, isPast: isPast });
+      }
+      html = days.map(function(d) {
+        return '<div class="day ' + (d.isToday ? 'today' : d.isPast ? 'past' : 'future') + '" data-date="' + d.key + '"><span class="label">' + d.label + '</span><span class="num">' + d.num + '</span></div>';
+      }).join('');
+      document.getElementById('date-nav').innerHTML = html;
+      document.getElementById('date-nav').querySelectorAll('.day').forEach(function(el) {
+        el.onclick = function() {
+          state = Object.assign({}, state, { selectedDateKey: el.dataset.date });
+          showScreen('day-history');
+          renderDayHistory();
+        };
+      });
+    }
+
+    function renderStreak() {
+      var streak = computeStreakState(state.taskRecords, dateKey(new Date()));
+      var wp = streak.isFailed ? 0 : Math.min(7, streak.currentStreak);
+      var fill = Math.min(7, wp);
+      document.getElementById('streak-wrap').innerHTML = '<div class="ring-container"><svg class="ring-svg" viewBox="0 0 260 260"><path class="ring-bg" d="M 130 6 A 124 124 0 1 1 23 68" pathLength="649" stroke-width="14"/><path class="ring-fill" id="ring-fill" d="M 130 6 A 124 124 0 1 1 23 68" pathLength="649" stroke-width="14"/></svg><div class="ring-center"><div class="streak-num' + (streak.isFailed ? ' failed' : '') + '" id="streak-num">' + (streak.isFailed ? '0' : streak.currentStreak) + '</div><div class="streak-label">DAY STREAK</div><div class="week-label" id="week-label">' + (streak.isFailed ? '0/7' : wp + '/7') + ' THIS WEEK</div></div></div><p class="motivational" id="motivational">' + (streak.isFailed ? 'Discipline must be rebuilt.' : streak.streakPreservedToday ? 'Streak preserved today.' : 'Stay disciplined today.') + '</p>';
+      var rf = document.getElementById('ring-fill');
+      if (rf) { rf.style.strokeDasharray = DASH_PATTERNS[fill]; rf.style.stroke = streak.isFailed ? '#E24D4D' : '#35C2FF'; }
+    }
+
+    function renderActiveTask() {
+      var streak = computeStreakState(state.taskRecords, dateKey(new Date()));
+      var active = getActiveTaskForToday(state);
+      var progress = getTodayProgress(state);
+      var allDone = progress.length > 0 && !active && !streak.isFailed;
+      var card = document.getElementById('active-task-card');
+
+      if (streak.isFailed) {
+        card.className = 'task-card';
+        card.innerHTML = '<div class="label">TASK FAILED</div><h3 style="font-size:18px;font-weight:600;color:#111;margin:8px 0">Streak broken.</h3><p style="font-size:14px;color:rgba(17,17,17,0.6)">Your streak has been reset. Return tomorrow to begin again.</p><button class="btn-complete" id="reset-demo-inline" style="margin-top:16px">Reset demo</button>';
+        document.getElementById('reset-demo-inline').onclick = function() { state = resetDemoData(); render(); };
+        return;
+      }
+
+      card.className = 'task-card';
+      if (allDone) {
+        card.innerHTML = '<div class="label">ALL TASKS COMPLETE</div><div class="day-complete">✓ Day complete — streak preserved</div>';
+        return;
+      }
+      if (!active) {
+        card.innerHTML = '<div class="label">NO ACTIVE TASK</div><p style="font-size:14px;color:rgba(17,17,17,0.6)">Add a task from the library to get started.</p>';
+        return;
+      }
+
+      card.innerHTML = '<div class="label">CURRENT TASK</div><div class="task-row"><div class="icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></div><span class="task-name">' + active.taskTitle + '</span></div><div class="btns"><button class="btn-complete" data-id="' + active.id + '">Complete Task</button><button class="btn-skip" data-id="' + active.id + '">Skip Task</button></div>';
+      card.querySelector('.btn-complete').onclick = function() { setState(completeTask(state, active.id)); };
+      card.querySelector('.btn-skip').onclick = function() { setState(denyTask(state, active.id)); };
+    }
+
+    function renderTodayProgress() {
+      var recs = getRecordsForDay(state, dateKey(new Date()));
+      var items = recs.filter(function(r) { return r.status !== TaskStatus.PENDING; }).sort(function(a,b) { return (a.timestamp||'').localeCompare(b.timestamp||''); });
+      var container = document.getElementById('today-progress');
+      if (items.length === 0 && !getActiveTaskForToday(state)) {
+        container.innerHTML = '<p style="font-size:13px;color:rgba(17,17,17,0.5);padding:8px 0">No tasks completed yet today.</p>';
+        return;
+      }
+      container.innerHTML = items.map(function(r) {
+        var denied = r.status === TaskStatus.DENIED;
+        var icon = denied ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E24D4D"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#35C2FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+        return '<div class="progress-item' + (denied ? ' denied' : '') + '"><div class="left">' + icon + '<span>' + r.taskTitle + '</span></div><span class="time">' + formatTime(r.timestamp) + '</span></div>';
+      }).join('');
+    }
+
+    function renderTaskLibrary() {
+      var todayRecs = getRecordsForDay(state, dateKey(new Date()));
+      var todayIds = {};
+      for (var i = 0; i < todayRecs.length; i++) todayIds[todayRecs[i].taskId] = true;
+      var html = state.tasks.map(function(t) {
+        var alreadyToday = todayIds[t.id];
+        var addBtn = (t.enabled && !alreadyToday) ? '<button class="btn-primary add-to-today" data-id="' + t.id + '" style="padding:6px 10px;font-size:11px">+ Today</button>' : '';
+        return '<div class="task-list-item' + (t.enabled ? '' : ' disabled') + '"><div><div class="task-title">' + t.title + '</div><div class="task-category">' + t.category + '</div></div><div class="task-actions">' + addBtn + '<div class="toggle-switch' + (t.enabled ? ' on' : '') + '" data-id="' + t.id + '"></div><button class="btn-secondary edit-task" data-id="' + t.id + '" style="padding:8px 12px;font-size:12px">Edit</button></div></div>';
+      }).join('');
+      document.getElementById('task-library-list').innerHTML = html;
+      document.getElementById('task-library-list').querySelectorAll('.toggle-switch').forEach(function(el) {
+        el.onclick = function() {
+          var id = el.dataset.id;
+          state.tasks = state.tasks.map(function(t) { return t.id === id ? Object.assign({}, t, { enabled: !t.enabled }) : t; });
+          setState(state);
+        };
+      });
+      document.getElementById('task-library-list').querySelectorAll('.edit-task').forEach(function(el) {
+        el.onclick = function() { openTaskModal(el.dataset.id); };
+      });
+      document.getElementById('task-library-list').querySelectorAll('.add-to-today').forEach(function(el) {
+        el.onclick = function() {
+          var t = null;
+          for (var i = 0; i < state.tasks.length; i++) if (state.tasks[i].id === el.dataset.id) { t = state.tasks[i]; break; }
+          if (t) { setState(activateTaskForToday(state, t)); showScreen('dashboard'); }
+        };
+      });
+    }
+
+    function renderStats() {
+      var streak = computeStreakState(state.taskRecords, dateKey(new Date()));
+      var completed = 0, denied = 0;
+      for (var i = 0; i < state.taskRecords.length; i++) {
+        if (state.taskRecords[i].status === TaskStatus.COMPLETED) completed++;
+        else if (state.taskRecords[i].status === TaskStatus.DENIED) denied++;
+      }
+      var total = completed + denied, rate = total > 0 ? Math.round(completed / total * 100) : 0;
+      document.getElementById('stats-grid').innerHTML = '<div class="stat-card"><div class="stat-value">' + (streak.isFailed ? 0 : streak.currentStreak) + '</div><div class="stat-label">CURRENT STREAK</div></div><div class="stat-card"><div class="stat-value">' + streak.longestStreak + '</div><div class="stat-label">LONGEST STREAK</div></div><div class="stat-card"><div class="stat-value">' + rate + '%</div><div class="stat-label">COMPLETION RATE</div></div><div class="stat-card"><div class="stat-value">' + completed + '</div><div class="stat-label">COMPLETED</div></div><div class="stat-card"><div class="stat-value">' + denied + '</div><div class="stat-label">DENIED</div></div>';
+      var weekHtml = '';
+      for (var i = 6; i >= 0; i--) {
+        var d = new Date(); d.setDate(d.getDate() - i);
+        var recs = getRecordsForDay(state, dateKey(d));
+        var hasDenied = false, hasCompleted = false;
+        for (var j = 0; j < recs.length; j++) { if (recs[j].status === TaskStatus.DENIED) hasDenied = true; if (recs[j].status === TaskStatus.COMPLETED) hasCompleted = true; }
+        var cls = hasDenied ? 'broken' : hasCompleted ? 'preserved' : '';
+        weekHtml += '<div class="week-day"><div class="bar ' + cls + '"></div><span class="label">' + getDayName(d).charAt(0) + '</span></div>';
+      }
+      document.getElementById('weekly-activity').innerHTML = '<h3>WEEKLY ACTIVITY</h3><div class="week-days">' + weekHtml + '</div>';
+    }
+
+    function renderSettings() {
+      var s = state.settings || {};
+      document.getElementById('settings-list').innerHTML = '<div class="settings-item"><span class="label">Theme</span><span class="value">' + (s.theme || 'Light') + '</span></div><div class="settings-item"><span class="label">Wording Mode</span><span class="value">' + (s.wordingMode || 'Calm') + '</span></div><div class="settings-item"><span class="label">Reminder Style</span><span class="value">' + (s.reminderStyle || 'Gentle') + ' (placeholder)</span></div><div class="settings-item"><span class="label">About Ascension</span><span class="value">Habit accountability app. Complete or admit. Protect your streak.</span></div>';
+    }
+
+    function renderDayHistory() {
+      var key = state.selectedDateKey;
+      var d = new Date(key + 'T12:00:00');
+      var recs = getRecordsForDay(state, key);
+      var hasDenied = false, hasCompleted = false;
+      for (var i = 0; i < recs.length; i++) { if (recs[i].status === TaskStatus.DENIED) hasDenied = true; if (recs[i].status === TaskStatus.COMPLETED) hasCompleted = true; }
+      var statusCls = hasDenied ? 'broken' : hasCompleted ? 'preserved' : '';
+      var statusTxt = hasDenied ? 'Streak broken this day' : hasCompleted ? 'Streak preserved' : 'No completions';
+      document.getElementById('day-history-header').innerHTML = '<h2>' + getDayName(d) + ' ' + d.getDate() + ' — ' + d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) + '</h2><div class="streak-status ' + statusCls + '">' + statusTxt + '</div>';
+      if (recs.length === 0) {
+        document.getElementById('day-history-tasks').innerHTML = '<p style="font-size:13px;color:rgba(17,17,17,0.5);">No tasks for this day.</p>';
+      } else {
+        document.getElementById('day-history-tasks').innerHTML = recs.map(function(r) {
+          return '<div class="history-task"><div><span class="task-title">' + r.taskTitle + '</span>' + (r.timestamp ? '<span class="time" style="display:block;font-size:12px;color:rgba(17,17,17,0.5)">' + formatTime(r.timestamp) + '</span>' : '') + '</div><span class="status-badge ' + r.status + '">' + r.status.toUpperCase() + '</span></div>';
+        }).join('');
+      }
+    }
+
+    var editingTaskId = null;
+    function openTaskModal(id) {
+      editingTaskId = id;
+      document.getElementById('task-modal-title').textContent = id ? 'Edit Task' : 'Add Task';
+      if (id) {
+        var t = null;
+        for (var i = 0; i < state.tasks.length; i++) if (state.tasks[i].id === id) { t = state.tasks[i]; break; }
+        document.getElementById('task-modal-title-input').value = t ? t.title : '';
+        document.getElementById('task-modal-category-input').value = t ? t.category : '';
+      } else {
+        document.getElementById('task-modal-title-input').value = '';
+        document.getElementById('task-modal-category-input').value = 'General';
+      }
+      document.getElementById('task-modal').classList.add('show');
+    }
+    function closeTaskModal() { document.getElementById('task-modal').classList.remove('show'); editingTaskId = null; }
+    function saveTaskFromModal() {
+      var title = document.getElementById('task-modal-title-input').value.trim();
+      var cat = document.getElementById('task-modal-category-input').value.trim() || 'General';
+      if (!title) return;
+      if (editingTaskId) {
+        state.tasks = state.tasks.map(function(t) { return t.id === editingTaskId ? Object.assign({}, t, { title: title, category: cat }) : t; });
+      } else {
+        state.tasks = state.tasks.concat([createTask({ title: title, category: cat })]);
+      }
+      setState(state);
+      closeTaskModal();
+    }
+
+    function renderNav() {
+      var tabs = [
+        { id: 'dashboard', icon: 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z', label: 'Dashboard' },
+        { id: 'library', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', label: 'Tasks' },
+        { id: 'stats', icon: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z', label: 'Stats' },
+        { id: 'settings', icon: 'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z', label: 'Settings' }
+      ];
+      var html = tabs.map(function(t, i) {
+        return '<div class="nav-item' + (state.activeTab === i ? ' active' : '') + '" data-tab="' + i + '"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="' + t.icon + '"/></svg><span>' + t.label + '</span></div>';
+      }).join('');
+      document.getElementById('bottom-nav').innerHTML = html;
+      document.getElementById('bottom-nav').querySelectorAll('.nav-item').forEach(function(el, i) {
+        el.onclick = function() {
+          state = Object.assign({}, state, { activeTab: parseInt(el.dataset.tab, 10) });
+          showScreen(tabs[parseInt(el.dataset.tab, 10)].id);
+          render();
+        };
+      });
+    }
+
+    function render() {
+      renderDateNav();
+      renderStreak();
+      renderActiveTask();
+      renderTodayProgress();
+      renderTaskLibrary();
+      renderStats();
+      renderSettings();
+      renderNav();
+      if (document.getElementById('screen-day-history').classList.contains('active')) renderDayHistory();
+    }
+
+    document.getElementById('add-task-btn').onclick = function() { openTaskModal(); };
+    document.getElementById('task-modal-cancel').onclick = closeTaskModal;
+    document.getElementById('task-modal-save').onclick = saveTaskFromModal;
+    document.getElementById('reset-demo-btn').onclick = function() { state = resetDemoData(); showScreen('dashboard'); render(); };
+    document.getElementById('day-history-back').onclick = function() { showScreen('dashboard'); render(); };
+
+    var frame = document.getElementById('iphone-frame');
+    function fit() {
+      var w = window.innerWidth - 32, h = window.innerHeight - 32;
+      var scale = Math.min(1, w / 417, h / 876);
+      frame.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+    }
+    fit();
+    window.addEventListener('resize', fit);
+
+    render();
+  })();
+  </script>
+</body>
+</html>
