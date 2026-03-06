@@ -33,7 +33,9 @@ if !pull_exit! neq 0 (
         echo [ERROR] git pull failed:
         type "!tempfile!"
     )
+    echo.
     del "!tempfile!" 2>nul
+    pause
     exit /b 1
 )
 
@@ -43,6 +45,8 @@ if !errorlevel! equ 0 (
     echo.
     echo [DONE] Already up to date
     del "!tempfile!" 2>nul
+    echo.
+    pause
     exit /b 0
 )
 
@@ -54,3 +58,5 @@ git diff --name-only HEAD@{1} HEAD 2>nul
 if errorlevel 1 type "!tempfile!"
 
 del "!tempfile!" 2>nul
+echo.
+pause

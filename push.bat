@@ -8,6 +8,8 @@ git add .
 if errorlevel 1 (
     echo.
     echo [ERROR] git add failed
+    echo.
+    pause
     exit /b 1
 )
 
@@ -27,6 +29,8 @@ for /f "delims=" %%f in ('git diff --cached --name-only 2^>nul') do (
 if "!has_files!"=="0" (
     echo.
     echo Nothing to commit
+    echo.
+    pause
     exit /b 0
 )
 
@@ -38,6 +42,8 @@ git commit -m "!msg!"
 if errorlevel 1 (
     echo.
     echo [ERROR] git commit failed
+    echo.
+    pause
     exit /b 1
 )
 
@@ -46,8 +52,12 @@ git push
 if errorlevel 1 (
     echo.
     echo [ERROR] git push failed
+    echo.
+    pause
     exit /b 1
 )
 
 echo.
 echo [DONE] Successfully pushed: !msg!
+echo.
+pause
