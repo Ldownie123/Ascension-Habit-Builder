@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# PUSH - Stage, commit, and push changes to GitHub
+# Usage: ./PUSH [optional commit message]
+
+set -e
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$REPO_ROOT"
+
+# Check if we're in a git repo
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "Error: Not a git repository."
+    exit 1
+fi
+
+BRANCH=$(git branch --show-current)
+
+# Check for uncommitted changes
+if [[ -z $(git status --porcelain) ]]; then
+    echo "No changes to commit. Working tree clean."
+    echo "Pushing any existing commits..."
+    git push origin "$BRANCH"
+    exit 0
+fi
+
+# Get commit message
+if [[ -n "$1" ]]; then
+    COMMIT_MSG="$*"
+else
+    echo "Enter commit message (or press Enter for default):"
+    read -r COMMIT_MSG
+    if [[ -z "$COMMIT_MSG" ]]; then
+        DATE=$(date '+%Y-%m-%d %H:%M')
+        COMMIT_MSG="Update: $DATE"
+    fi
+fi
+
+# Stage all changes
+echo "Staging changes..."
+git add -A
+
+# Show what will be committed
+echo ""
+echo "Changes to be committed:"
+git status --short
+echo ""
+
+# Commit
+git commit -m "$COMMIT_MSG"
+
+# Push
+echo "Pushing to origin/$BRANCH..."
+git push origin "$BRANCH"
+
+echo ""
+echo "✓ Successfully pushed to GitHub"

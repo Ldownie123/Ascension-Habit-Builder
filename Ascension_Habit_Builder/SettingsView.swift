@@ -60,10 +60,6 @@ struct SettingsView: View {
                         SettingsRow(icon: "speaker.wave.2.fill", title: "Sound", subtitle: "Completion sounds")
                     }
                     
-                    settingsSection(title: "Appearance") {
-                        SettingsRow(icon: "paintbrush.fill", title: "Theme", subtitle: "Light mode")
-                    }
-                    
                     settingsSection(title: "Dev Tools") {
                         DevToolButton(icon: "house.fill", title: "Back to Home") {
                             dismiss()

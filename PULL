@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# PULL - Fetch and merge latest changes from GitHub
+# Usage: ./PULL
+
+set -e
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$REPO_ROOT"
+
+# Check if we're in a git repo
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "Error: Not a git repository."
+    exit 1
+fi
+
+BRANCH=$(git branch --show-current)
+
+# Fetch and pull
+echo "Fetching from origin..."
+git fetch origin
+
+# Check for uncommitted changes before pull
+if [[ -n $(git status --porcelain) ]]; then
+    echo "Warning: You have uncommitted changes."
+    echo "Options:"
+    echo "  1) Stash changes, pull, then unstash (recommended)"
+    echo "  2) Abort and commit/stash manually"
+    echo "  3) Attempt pull anyway (may fail or create merge)"
+    read -r -p "Choice [1/2/3]: " choice
+    case "$choice" in
+        1)
+            echo "Stashing changes..."
+            git stash push -m "Auto-stash before pull $(date '+%Y-%m-%d %H:%M')"
+            git pull origin "$BRANCH"
+            echo "Restoring stashed changes..."
+            git stash pop
+            ;;
+        2)
+            echo "Aborted. Run ./PUSH to commit, or 'git stash' manually."
+            exit 1
+            ;;
+        3)
+            git pull origin "$BRANCH"
+            ;;
+        *)
+            echo "Invalid choice. Aborting."
+            exit 1
+            ;;
+    esac
+else
+    git pull origin "$BRANCH"
+fi
+
+echo ""
+echo "✓ Successfully pulled from GitHub"

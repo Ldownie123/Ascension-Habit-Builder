@@ -220,7 +220,13 @@ struct ContentView: View {
             Color.black.opacity(0.6)
                 .ignoresSafeArea()
             
-            if let quote = displayedQuote {
+            if streakCount > 0 && streakCount % 7 == 0 {
+                Text("Congratulations! Fewer than 30% of people who start a new habit make it to day 7. You're proof that commitment pays off.")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            } else if let quote = displayedQuote {
                 VStack(spacing: 16) {
                     Text(quote.text)
                         .font(.system(size: 20, weight: .medium))
